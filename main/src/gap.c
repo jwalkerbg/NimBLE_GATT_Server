@@ -188,6 +188,7 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         }
         /* Connection failed, restart advertising */
         else {
+            s_ble.connected = false;
             start_advertising();
         }
         return rc;
