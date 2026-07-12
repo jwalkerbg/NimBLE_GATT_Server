@@ -189,7 +189,9 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         /* Connection failed, restart advertising */
         else {
             s_ble.connected = false;
-            start_advertising();
+            if (s_ble.pairing_mode) {
+                start_advertising();
+            }
         }
         return rc;
 
@@ -202,7 +204,9 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         s_ble.connected = false;
         s_ble.conn_handle = BLE_HS_CONN_HANDLE_NONE;
         /* Restart advertising */
-        start_advertising();
+        if (s_ble.pairing_mode) {
+            start_advertising();
+        }
         return rc;
 
     /* Connection parameters update event */
@@ -226,7 +230,9 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         /* Advertising completed, restart advertising */
         ESP_LOGI(TAG, "advertise complete; reason=%d",
                  event->adv_complete.reason);
-        start_advertising();
+        if (s_ble.pairing_mode) {
+            start_advertising();
+        }
         return rc;
 
     /* Notification sent event */
