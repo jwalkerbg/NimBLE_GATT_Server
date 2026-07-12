@@ -89,7 +89,7 @@ static void start_advertising(void) {
 
     /* Set device address */
     rsp_fields.device_addr = addr_val;
-    rsp_fields.device_addr_type = own_addr_type;
+    rsp_fields.device_addr_type = ble_ctx.own_addr_type;
     rsp_fields.device_addr_is_present = 1;
 
     /* Set URI */
@@ -116,7 +116,7 @@ static void start_advertising(void) {
     adv_params.itvl_max = BLE_GAP_ADV_ITVL_MS(510);
 
     /* Start advertising */
-    rc = ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, &adv_params,
+    rc = ble_gap_adv_start(ble_ctx.own_addr_type, NULL, BLE_HS_FOREVER, &adv_params,
                            gap_event_handler, NULL);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to start advertising, error code: %d", rc);
@@ -269,14 +269,14 @@ void adv_init(void) {
     }
 
     /* Figure out BT address to use while advertising (no privacy for now) */
-    rc = ble_hs_id_infer_auto(0, &own_addr_type);
+    rc = ble_hs_id_infer_auto(0, &ble_ctx.own_addr_type);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to infer address type, error code: %d", rc);
         return;
     }
 
     /* Printing ADDR */
-    rc = ble_hs_id_copy_addr(own_addr_type, addr_val, NULL);
+    rc = ble_hs_id_copy_addr(ble_ctx.own_addr_type, addr_val, NULL);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to copy device address, error code: %d", rc);
         return;
