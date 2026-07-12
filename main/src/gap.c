@@ -15,7 +15,7 @@ static void start_advertising(void);
 static int gap_event_handler(struct ble_gap_event *event, void *arg);
 
 /* Private variables */
-ble_context_t ble_ctx = {
+ble_context_t s_ble = {
     .initialized = false,
     .advertising = false,
     .connected = false,
@@ -96,7 +96,7 @@ static void start_advertising(void) {
 
     /* Set device address */
     rsp_fields.device_addr = addr_val;
-    rsp_fields.device_addr_type = ble_ctx.own_addr_type;
+    rsp_fields.device_addr_type = s_ble.own_addr_type;
     rsp_fields.device_addr_is_present = 1;
 
     /* Set URI */
@@ -123,7 +123,7 @@ static void start_advertising(void) {
     adv_params.itvl_max = BLE_GAP_ADV_ITVL_MS(510);
 
     /* Start advertising */
-    rc = ble_gap_adv_start(ble_ctx.own_addr_type, NULL, BLE_HS_FOREVER, &adv_params,
+    rc = ble_gap_adv_start(s_ble.own_addr_type, NULL, BLE_HS_FOREVER, &adv_params,
                            gap_event_handler, NULL);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to start advertising, error code: %d", rc);
@@ -180,9 +180,9 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
                     rc);
                 return rc;
             }
-            ble_ctx.conn_handle = event->connect.conn_handle;
-            ble_ctx.connected = event->connect.status == 0 ? true : false;
-            ble_ctx.advertising = false;
+            s_ble.conn_handle = event->connect.conn_handle;
+            s_ble.connected = event->connect.status == 0 ? true : false;
+            s_ble.advertising = false;
         }
         /* Connection failed, restart advertising */
         else {
@@ -196,11 +196,11 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         ESP_LOGI(TAG, "disconnected from peer; reason=%d",
                  event->disconnect.reason);
 
-        ble_ctx.connected = false;
-        ble_ctx.conn_handle = BLE_HS_CONN_HANDLE_NONE;
+        s_ble.connected = false;
+        s_ble.conn_handle = BLE_HS_CONN_HANDLE_NONE;
         /* Restart advertising */
         start_advertising();
-        ble_ctx.advertising = true;
+        s_ble.advertising = true;
         return rc;
 
     /* Connection parameters update event */
@@ -225,7 +225,7 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         ESP_LOGI(TAG, "advertise complete; reason=%d",
                  event->adv_complete.reason);
         start_advertising();
-        ble_ctx.advertising = true;
+        s_ble.advertising = true;
         return rc;
 
     /* Notification sent event */
@@ -283,14 +283,14 @@ void adv_init(void) {
     }
 
     /* Figure out BT address to use while advertising (no privacy for now) */
-    rc = ble_hs_id_infer_auto(0, &ble_ctx.own_addr_type);
+    rc = ble_hs_id_infer_auto(0, &s_ble.own_addr_type);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to infer address type, error code: %d", rc);
         return;
     }
 
     /* Printing ADDR */
-    rc = ble_hs_id_copy_addr(ble_ctx.own_addr_type, addr_val, NULL);
+    rc = ble_hs_id_copy_addr(s_ble.own_addr_type, addr_val, NULL);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to copy device address, error code: %d", rc);
         return;
