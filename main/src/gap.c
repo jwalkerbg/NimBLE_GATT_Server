@@ -190,7 +190,7 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         else {
             s_ble.connected = false;
             if (s_ble.pairing_mode) {
-                start_advertising();
+                rc = start_advertising();
             }
         }
         return rc;
@@ -205,7 +205,7 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         s_ble.conn_handle = BLE_HS_CONN_HANDLE_NONE;
         /* Restart advertising */
         if (s_ble.pairing_mode) {
-            start_advertising();
+            rc = start_advertising();
         }
         return rc;
 
@@ -231,7 +231,7 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         ESP_LOGI(TAG, "advertise complete; reason=%d",
                  event->adv_complete.reason);
         if (s_ble.pairing_mode) {
-            start_advertising();
+            rc = start_advertising();
         }
         return rc;
 
@@ -277,7 +277,7 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
 
 
 /* Public functions */
-void adv_init(void) {
+int adv_init(void) {
     /* Local variables */
     int rc = 0;
     char addr_str[18] = {0};
@@ -286,27 +286,27 @@ void adv_init(void) {
     rc = ble_hs_util_ensure_addr(0);
     if (rc != 0) {
         ESP_LOGE(TAG, "device does not have any available bt address!");
-        return;
+        return rc;
     }
 
     /* Figure out BT address to use while advertising (no privacy for now) */
     rc = ble_hs_id_infer_auto(0, &s_ble.own_addr_type);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to infer address type, error code: %d", rc);
-        return;
+        return rc;
     }
 
     /* Printing ADDR */
     rc = ble_hs_id_copy_addr(s_ble.own_addr_type, addr_val, NULL);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to copy device address, error code: %d", rc);
-        return;
+        return rc;
     }
     format_addr(addr_str, addr_val);
     ESP_LOGI(TAG, "device address: %s", addr_str);
 
     /* Start advertising. */
-    start_advertising();
+    return start_advertising();
 }
 
 int gap_init(void) {
