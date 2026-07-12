@@ -11,7 +11,7 @@
 /* Private function declarations */
 inline static void format_addr(char *addr_str, uint8_t addr[]);
 static void print_conn_desc(struct ble_gap_conn_desc *desc);
-static void start_advertising(void);
+static int start_advertising(void);
 static int gap_event_handler(struct ble_gap_event *event, void *arg);
 
 /* Private variables */
@@ -58,7 +58,7 @@ static void print_conn_desc(struct ble_gap_conn_desc *desc) {
              desc->sec_state.bonded);
 }
 
-static void start_advertising(void) {
+static int start_advertising(void) {
     /* Local variables */
     int rc = 0;
     const char *name;
@@ -91,7 +91,7 @@ static void start_advertising(void) {
     rc = ble_gap_adv_set_fields(&adv_fields);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to set advertising data, error code: %d", rc);
-        return;
+        return rc;
     }
 
     /* Set device address */
@@ -111,7 +111,7 @@ static void start_advertising(void) {
     rc = ble_gap_adv_rsp_set_fields(&rsp_fields);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to set scan response data, error code: %d", rc);
-        return;
+        return rc;
     }
 
     /* Set undirected connectable and general discoverable mode */
@@ -127,9 +127,11 @@ static void start_advertising(void) {
                            gap_event_handler, NULL);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to start advertising, error code: %d", rc);
-        return;
+        return rc;
     }
+    s_ble.advertising = true;
     ESP_LOGI(TAG, "advertising started!");
+    return rc;
 }
 
 /*
@@ -200,7 +202,6 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         s_ble.conn_handle = BLE_HS_CONN_HANDLE_NONE;
         /* Restart advertising */
         start_advertising();
-        s_ble.advertising = true;
         return rc;
 
     /* Connection parameters update event */
@@ -225,7 +226,6 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         ESP_LOGI(TAG, "advertise complete; reason=%d",
                  event->adv_complete.reason);
         start_advertising();
-        s_ble.advertising = true;
         return rc;
 
     /* Notification sent event */
