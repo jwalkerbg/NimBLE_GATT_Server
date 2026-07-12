@@ -20,4 +20,7 @@
 int adv_init(void);
 int gap_init(void);
 
+int ble_enter_pairing_mode(void);
+int ble_exit_pairing_mode(void);
+
 #endif // GAP_SVC_H

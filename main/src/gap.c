@@ -58,7 +58,8 @@ static void print_conn_desc(struct ble_gap_conn_desc *desc) {
              desc->sec_state.bonded);
 }
 
-static int start_advertising(void) {
+static int start_advertising(void)
+{
     /* Local variables */
     int rc = 0;
     const char *name;
@@ -131,6 +132,26 @@ static int start_advertising(void) {
     }
     s_ble.advertising = true;
     ESP_LOGI(TAG, "advertising started!");
+    return rc;
+}
+
+static int stop_advertising(void)
+{
+    int rc = 0;
+
+    if (!s_ble.advertising) {
+        return rc;
+    }
+
+    rc = ble_gap_adv_stop();
+
+    if (rc != 0) {
+        ESP_LOGE(TAG, "failed to stop advertising, rc=%d", rc);
+        return rc;
+    }
+
+    s_ble.advertising = false;
+
     return rc;
 }
 
@@ -277,7 +298,8 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
 
 
 /* Public functions */
-int adv_init(void) {
+int adv_init(void)
+{
     /* Local variables */
     int rc = 0;
     char addr_str[18] = {0};
@@ -305,8 +327,7 @@ int adv_init(void) {
     format_addr(addr_str, addr_val);
     ESP_LOGI(TAG, "device address: %s", addr_str);
 
-    /* Start advertising. */
-    return start_advertising();
+    return rc;
 }
 
 int gap_init(void) {
@@ -323,5 +344,31 @@ int gap_init(void) {
                  DEVICE_NAME, rc);
         return rc;
     }
+    return rc;
+}
+
+int ble_enter_pairing_mode(void)
+{
+    int rc;
+
+    s_ble.pairing_mode = true;
+
+    rc = start_advertising();
+
+    if (rc != 0) {
+        s_ble.pairing_mode = false;
+    }
+
+    return rc;
+}
+
+int ble_exit_pairing_mode(void)
+{
+    int rc;
+
+    s_ble.pairing_mode = false;
+
+    rc = stop_advertising();
+
     return rc;
 }
