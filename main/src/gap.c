@@ -180,6 +180,9 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
                     rc);
                 return rc;
             }
+            ble_ctx.conn_handle = event->connect.conn_handle;
+            ble_ctx.connected = event->connect.status == 0 ? true : false;
+            ble_ctx.advertising = false;
         }
         /* Connection failed, restart advertising */
         else {
@@ -193,8 +196,11 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         ESP_LOGI(TAG, "disconnected from peer; reason=%d",
                  event->disconnect.reason);
 
+        ble_ctx.connected = false;
+        ble_ctx.conn_handle = BLE_HS_CONN_HANDLE_NONE;
         /* Restart advertising */
         start_advertising();
+        ble_ctx.advertising = true;
         return rc;
 
     /* Connection parameters update event */
@@ -219,6 +225,7 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         ESP_LOGI(TAG, "advertise complete; reason=%d",
                  event->adv_complete.reason);
         start_advertising();
+        ble_ctx.advertising = true;
         return rc;
 
     /* Notification sent event */
