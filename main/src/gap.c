@@ -20,8 +20,8 @@ ble_context_t s_ble = {
     .advertising = false,
     .connected = false,
     .pairing_mode = false,
-    .own_addr_type = BLE_OWN_ADDR_PUBLIC
-    .conn_handle = BLE_HS_CONN_HANDLE_NONE,
+    .own_addr_type = BLE_OWN_ADDR_PUBLIC,
+    .conn_handle = BLE_HS_CONN_HANDLE_NONE
 };
 static uint8_t addr_val[6] = {0};
 static uint8_t esp_uri[] = {BLE_GAP_URI_PREFIX_HTTPS, '/', '/', 'e', 's', 'p', 'r', 'e', 's', 's', 'i', 'f', '.', 'c', 'o', 'm'};
