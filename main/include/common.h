@@ -37,12 +37,10 @@
 typedef struct
 {
     bool initialized;
-    bool pairing_mode;
     bool advertising;
     bool connected;
-
+    bool pairing_mode;
     uint8_t own_addr_type;
-
     uint16_t conn_handle;
 
 } ble_context_t;
