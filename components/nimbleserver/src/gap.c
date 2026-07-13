@@ -145,7 +145,7 @@ static int start_advertising(void)
         return rc;
     }
     s_ble.advertising = true;
-    ESP_LOGI(TAG, "advertising started!");
+    ESP_LOGI(TAG, "advertising started");
     return rc;
 }
 
@@ -324,7 +324,7 @@ int adv_init(void)
     /* Make sure we have proper BT identity address set (random preferred) */
     rc = ble_hs_util_ensure_addr(0);
     if (rc != 0) {
-        ESP_LOGE(TAG, "device does not have any available bt address!");
+        ESP_LOGE(TAG, "device does not have any available bt address");
         return rc;
     }
 

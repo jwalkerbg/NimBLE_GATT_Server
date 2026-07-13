@@ -154,6 +154,9 @@ static int command_chr_access(uint16_t conn_handle, uint16_t attr_handle,
                         return BLE_ATT_ERR_UNLIKELY;
                     }
                 }
+                else {
+                    ESP_LOGD(TAG, "api_post_command is NULL, cannot process command");
+                }
             } else {
                 goto error;
             }
