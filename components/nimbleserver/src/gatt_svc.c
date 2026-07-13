@@ -6,6 +6,7 @@
 /* Includes */
 #include "gatt_svc.h"
 #include "common.h"
+#include "ble_gatt_svc_uuid16.h"
 #include "heart_rate.h"
 #include "led.h"
 

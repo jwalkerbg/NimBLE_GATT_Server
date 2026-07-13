@@ -7,6 +7,7 @@
 #include "gap.h"
 #include "common.h"
 #include "gatt_svc.h"
+#include "ble_gatt_svc_uuid16.h"
 
 /* Private function declarations */
 inline static void format_addr(char *addr_str, uint8_t addr[]);
@@ -75,6 +76,12 @@ static int start_advertising(void)
     adv_fields.name = (uint8_t *)name;
     adv_fields.name_len = strlen(name);
     adv_fields.name_is_complete = 1;
+
+    /* Add your Automation IO service UUID (0x1815) */
+    static ble_uuid16_t svc_uuid = BLE_UUID16_INIT(BLE_GATT_SVC_UUID16_VALUE);
+    adv_fields.uuids16 = &svc_uuid;
+    adv_fields.num_uuids16 = 1;
+    adv_fields.uuids16_is_complete = 1;
 
     /* Set device tx power */
     adv_fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
@@ -340,10 +347,10 @@ int gap_init(void) {
     ble_svc_gap_init();
 
     /* Set GAP device name */
-    rc = ble_svc_gap_device_name_set(DEVICE_NAME);
+    rc = ble_svc_gap_device_name_set(CONFIG_NIMBLE_DEVICE_NAME);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to set device name to %s, error code: %d",
-                 DEVICE_NAME, rc);
+                 CONFIG_NIMBLE_DEVICE_NAME, rc);
         return rc;
     }
     return rc;
