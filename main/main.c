@@ -8,6 +8,21 @@
 #include "gap.h"
 #include "ble.h"
 
+static uint8_t buf[CONFIG_NIMBLE_BUFFER_SIZE] = {0};
+
+esp_err_t command_cb (struct os_mbuf *param)
+{
+    int len = OS_MBUF_PKTLEN(param);
+    if (len > sizeof(buf)) {
+        len = sizeof(buf);
+    }
+    os_mbuf_copydata(param, 0, len, buf);
+    ESP_LOGI(TAG, "WRITE received, length=%d", len);
+    ESP_LOG_BUFFER_HEX(TAG, buf, len);
+
+    return ESP_OK;
+}
+
 void app_main(void)
 {
     esp_err_t ret;
@@ -29,7 +44,7 @@ void app_main(void)
 
     /* NimBLE stack initialization */
     ble_init();
-
+    ble_set_callbacks(command_cb);
 again:
     ESP_LOGI(TAG, "Waiting for %d seconds",CONFIG_SILENT_TIME);
     vTaskDelay(pdMS_TO_TICKS(CONFIG_SILENT_TIME * 1000));
