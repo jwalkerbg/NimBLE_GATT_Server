@@ -28,12 +28,19 @@ static uint8_t addr_val[6] = {0};
 static uint8_t esp_uri[] = {BLE_GAP_URI_PREFIX_HTTPS, '/', '/', 'e', 's', 'p', 'r', 'e', 's', 's', 'i', 'f', '.', 'c', 'o', 'm'};
 
 /* Private functions */
-inline static void format_addr(char *addr_str, uint8_t addr[]) {
+uint16_t get_ble_conn_handle(void)
+{
+    return s_ble.conn_handle;
+}
+
+inline static void format_addr(char *addr_str, uint8_t addr[])
+{
     sprintf(addr_str, "%02X:%02X:%02X:%02X:%02X:%02X", addr[0], addr[1],
             addr[2], addr[3], addr[4], addr[5]);
 }
 
-static void print_conn_desc(struct ble_gap_conn_desc *desc) {
+static void print_conn_desc(struct ble_gap_conn_desc *desc)
+{
     /* Local variables */
     char addr_str[18] = {0};
 
@@ -168,7 +175,8 @@ static int stop_advertising(void)
  * gap_event_handler is a callback function registered when calling
  * ble_gap_adv_start API and called when a GAP event arrives
  */
-static int gap_event_handler(struct ble_gap_event *event, void *arg) {
+static int gap_event_handler(struct ble_gap_event *event, void *arg)
+{
     /* Local variables */
     int rc = 0;
     struct ble_gap_conn_desc desc;
@@ -339,7 +347,8 @@ int adv_init(void)
     return rc;
 }
 
-int gap_init(void) {
+int gap_init(void)
+{
     /* Local variables */
     int rc = 0;
 
@@ -384,3 +393,5 @@ int ble_exit_pairing_mode(void)
 
     return rc;
 }
+
+// End of gap.c

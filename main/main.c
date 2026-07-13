@@ -11,30 +11,8 @@
 #include "heart_rate.h"
 #include "led.h"
 
-static void heart_rate_task(void *param) {
-    /* Task entry log */
-    ESP_LOGI(TAG, "heart rate task has been started!");
-
-    /* Loop forever */
-    while (1) {
-        /* Update heart rate value every 1 second */
-        update_heart_rate();
-        ESP_LOGI(TAG, "heart rate updated to %d", get_heart_rate());
-
-        /* Send heart rate indication if enabled */
-        send_heart_rate_indication();
-
-        /* Sleep */
-        vTaskDelay(HEART_RATE_TASK_PERIOD);
-    }
-
-    /* Clean up at exit */
-    vTaskDelete(NULL);
-}
-
-void app_main(void) {
-    /* Local variables */
-    int rc = 0;
+void app_main(void)
+{
     esp_err_t ret;
 
     /* LED initialization */
@@ -57,7 +35,6 @@ void app_main(void) {
 
     /* NimBLE stack initialization */
     ble_init();
-    xTaskCreate(heart_rate_task, "Heart Rate", 4*1024, NULL, 5, NULL);
 
 again:
     ESP_LOGI(TAG, "Waiting for 30 seconds");
