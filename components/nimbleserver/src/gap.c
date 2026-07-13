@@ -91,12 +91,14 @@ static int start_advertising(void)
     adv_fields.uuids16_is_complete = 1;
 
     /* Set device tx power */
-    adv_fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
-    adv_fields.tx_pwr_lvl_is_present = 1;
+    // can be omitted for our device
+    // adv_fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
+    // adv_fields.tx_pwr_lvl_is_present = 1;
 
     /* Set device appearance */
-    adv_fields.appearance = BLE_GAP_APPEARANCE_GENERIC_TAG;
-    adv_fields.appearance_is_present = 1;
+    // can be omitted for our device
+    // adv_fields.appearance = BLE_GAP_APPEARANCE_GENERIC_TAG;
+    // adv_fields.appearance_is_present = 1;
 
     /* Set device LE role */
     adv_fields.le_role = BLE_GAP_LE_ROLE_PERIPHERAL;
