@@ -9,8 +9,6 @@
 #include "common.h"
 #include "ble_gatt_svc_uuid16.h"
 #include "ble.h"
-#include "heart_rate.h"
-#include "led.h"
 
 /* Private function declarations */
 static int command_chr_access(uint16_t conn_handle, uint16_t attr_handle,

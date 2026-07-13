@@ -6,17 +6,11 @@
 /* Includes */
 #include "common.h"
 #include "gap.h"
-#include "gatt_svc.h"
 #include "ble.h"
-#include "heart_rate.h"
-#include "led.h"
 
 void app_main(void)
 {
     esp_err_t ret;
-
-    /* LED initialization */
-    led_init();
 
     /*
      * NVS flash initialization
