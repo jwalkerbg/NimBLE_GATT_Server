@@ -151,6 +151,7 @@ static int stop_advertising(void)
     }
 
     s_ble.advertising = false;
+    ESP_LOGI(TAG, "advertising stopped");
 
     return rc;
 }
@@ -226,6 +227,7 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         s_ble.conn_handle = BLE_HS_CONN_HANDLE_NONE;
         /* Restart advertising */
         if (s_ble.pairing_mode) {
+            ESP_LOGI(TAG, "Starting advertising after BLE_GAP_EVENT_DISCONNECT because we are in pairing mode");
             rc = start_advertising();
         }
         return rc;
@@ -349,7 +351,7 @@ int gap_init(void) {
 
 int ble_enter_pairing_mode(void)
 {
-    int rc;
+    int rc = 0;
 
     s_ble.pairing_mode = true;
 
@@ -358,7 +360,7 @@ int ble_enter_pairing_mode(void)
     if (rc != 0) {
         s_ble.pairing_mode = false;
     }
-
+    ESP_LOGI(TAG, "pairing mode entered");
     return rc;
 }
 
@@ -369,6 +371,9 @@ int ble_exit_pairing_mode(void)
     s_ble.pairing_mode = false;
 
     rc = stop_advertising();
+    if (rc == 0) {
+        ESP_LOGI(TAG, "pairing mode exited");
+    }
 
     return rc;
 }
