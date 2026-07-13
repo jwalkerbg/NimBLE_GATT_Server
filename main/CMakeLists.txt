@@ -2,4 +2,4 @@ file(GLOB_RECURSE srcs "main.c" "src/*.c")
 
 idf_component_register(SRCS "${srcs}"
                        PRIV_REQUIRES nvs_flash esp_driver_gpio nimbleserver
-                       INCLUDE_DIRS "./include")
+                    )

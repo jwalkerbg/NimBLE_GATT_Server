@@ -7,6 +7,7 @@
 #include "gap.h"
 #include "common.h"
 #include "gatt_svc.h"
+#include "ble_gatt_svc_uuid16.h"
 
 /* Private function declarations */
 inline static void format_addr(char *addr_str, uint8_t addr[]);
@@ -27,12 +28,19 @@ static uint8_t addr_val[6] = {0};
 static uint8_t esp_uri[] = {BLE_GAP_URI_PREFIX_HTTPS, '/', '/', 'e', 's', 'p', 'r', 'e', 's', 's', 'i', 'f', '.', 'c', 'o', 'm'};
 
 /* Private functions */
-inline static void format_addr(char *addr_str, uint8_t addr[]) {
+uint16_t get_ble_conn_handle(void)
+{
+    return s_ble.conn_handle;
+}
+
+inline static void format_addr(char *addr_str, uint8_t addr[])
+{
     sprintf(addr_str, "%02X:%02X:%02X:%02X:%02X:%02X", addr[0], addr[1],
             addr[2], addr[3], addr[4], addr[5]);
 }
 
-static void print_conn_desc(struct ble_gap_conn_desc *desc) {
+static void print_conn_desc(struct ble_gap_conn_desc *desc)
+{
     /* Local variables */
     char addr_str[18] = {0};
 
@@ -75,6 +83,12 @@ static int start_advertising(void)
     adv_fields.name = (uint8_t *)name;
     adv_fields.name_len = strlen(name);
     adv_fields.name_is_complete = 1;
+
+    /* Add your Automation IO service UUID (0x1815) */
+    static ble_uuid16_t svc_uuid = BLE_UUID16_INIT(BLE_GATT_SVC_UUID16_VALUE);
+    adv_fields.uuids16 = &svc_uuid;
+    adv_fields.num_uuids16 = 1;
+    adv_fields.uuids16_is_complete = 1;
 
     /* Set device tx power */
     adv_fields.tx_pwr_lvl = BLE_HS_ADV_TX_PWR_LVL_AUTO;
@@ -131,7 +145,7 @@ static int start_advertising(void)
         return rc;
     }
     s_ble.advertising = true;
-    ESP_LOGI(TAG, "advertising started!");
+    ESP_LOGI(TAG, "advertising started");
     return rc;
 }
 
@@ -161,7 +175,8 @@ static int stop_advertising(void)
  * gap_event_handler is a callback function registered when calling
  * ble_gap_adv_start API and called when a GAP event arrives
  */
-static int gap_event_handler(struct ble_gap_event *event, void *arg) {
+static int gap_event_handler(struct ble_gap_event *event, void *arg)
+{
     /* Local variables */
     int rc = 0;
     struct ble_gap_conn_desc desc;
@@ -309,7 +324,7 @@ int adv_init(void)
     /* Make sure we have proper BT identity address set (random preferred) */
     rc = ble_hs_util_ensure_addr(0);
     if (rc != 0) {
-        ESP_LOGE(TAG, "device does not have any available bt address!");
+        ESP_LOGE(TAG, "device does not have any available bt address");
         return rc;
     }
 
@@ -332,7 +347,8 @@ int adv_init(void)
     return rc;
 }
 
-int gap_init(void) {
+int gap_init(void)
+{
     /* Local variables */
     int rc = 0;
 
@@ -340,10 +356,10 @@ int gap_init(void) {
     ble_svc_gap_init();
 
     /* Set GAP device name */
-    rc = ble_svc_gap_device_name_set(DEVICE_NAME);
+    rc = ble_svc_gap_device_name_set(CONFIG_NIMBLE_DEVICE_NAME);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to set device name to %s, error code: %d",
-                 DEVICE_NAME, rc);
+                 CONFIG_NIMBLE_DEVICE_NAME, rc);
         return rc;
     }
     return rc;
@@ -377,3 +393,5 @@ int ble_exit_pairing_mode(void)
 
     return rc;
 }
+
+// End of gap.c
