@@ -31,11 +31,11 @@ void app_main(void)
     ble_init();
 
 again:
-    ESP_LOGI(TAG, "Waiting for 30 seconds");
-    vTaskDelay(pdMS_TO_TICKS(60000));
-    ESP_LOGI(TAG, "Entering pairing mode");
+    ESP_LOGI(TAG, "Waiting for %d seconds",CONFIG_SILENT_TIME);
+    vTaskDelay(pdMS_TO_TICKS(CONFIG_SILENT_TIME * 1000));
+    ESP_LOGI(TAG, "Entering pairing mode for %d seconds",CONFIG_PAIRING_TIME);
     ble_enter_pairing_mode();
-    vTaskDelay(pdMS_TO_TICKS(120000));
+    vTaskDelay(pdMS_TO_TICKS(CONFIG_PAIRING_TIME * 1000));
     ble_exit_pairing_mode();
     goto again;
 
