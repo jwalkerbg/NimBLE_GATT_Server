@@ -17,7 +17,10 @@
 #define BLE_GAP_LE_ROLE_PERIPHERAL 0x00
 
 /* Public function declarations */
-void adv_init(void);
+int adv_init(void);
 int gap_init(void);
+uint16_t get_ble_conn_handle(void);
+int ble_enter_pairing_mode(void);
+int ble_exit_pairing_mode(void);
 
 #endif // GAP_SVC_H

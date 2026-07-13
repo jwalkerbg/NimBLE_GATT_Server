@@ -32,6 +32,16 @@
 
 /* Defines */
 #define TAG "NimBLE_GATT_Server"
-#define DEVICE_NAME "NimBLE_GATT"
+
+typedef struct
+{
+    bool initialized;
+    bool advertising;
+    bool connected;
+    bool pairing_mode;
+    uint8_t own_addr_type;
+    uint16_t conn_handle;
+
+} ble_context_t;
 
 #endif // COMMON_H
