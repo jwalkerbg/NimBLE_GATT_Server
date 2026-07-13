@@ -15,7 +15,7 @@ typedef esp_err_t (*api_post_command_from_ble_t)(struct os_mbuf *param);
 
 esp_err_t ble_init(void);
 
-void nimble_set_callbacks(api_post_command_from_ble_t command);
+void ble_set_callbacks(api_post_command_from_ble_t command);
 esp_err_t ble_indicate_response(uint8_t* buffer, uint16_t len);
 esp_err_t ble_indicate_devstatus(uint8_t* buffer, uint16_t len);
 

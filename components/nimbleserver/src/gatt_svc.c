@@ -113,7 +113,7 @@ static int gatt_svr_chr_user_desc_cb(uint16_t conn_handle,
                : BLE_ATT_ERR_INSUFFICIENT_RES;
 }
 
-void nimble_set_callbacks(api_post_command_from_ble_t command)
+void ble_set_callbacks(api_post_command_from_ble_t command)
 {
     // Set callbacks for API command and response
     api_post_command = command;
