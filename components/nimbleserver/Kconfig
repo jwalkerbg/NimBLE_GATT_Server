@@ -1,0 +1,35 @@
+menu "NimBLE Server Configuration"
+    help
+        Configuration options for the NimBLE server.
+
+    config NIMBLE_GATT_SERVER
+        bool "Enable NimBLE Server support"
+        default y
+        help
+            Enable support of NimBLE Server.
+            This component provides the NimBLE Server functionality for NimBLE stack.
+
+    if NIMBLE_GATT_SERVER
+
+        config NIMBLE_SERVER_VERSION
+            string "NimBLE Server Version"
+            default "2.0.0"
+            help
+                Define the version of the NimBLE Server component.
+
+        config NIMBLE_DEVICE_NAME
+            string "NimBLE Device Name"
+            default "Smart Device"
+            help
+                This parameter defines the name of the NimBLE device.
+                It will be used in the advertisement packets and GATT services and will be seen by other BLE devices during scanning.
+
+        config NIMBLE_BUFFER_SIZE
+            int "NimBLE Buffer Size"
+            range 64 512
+            default 390
+            help
+                This parameter determines the size of the buffer used by the NimBLE Server.
+                The value is in bytes. A larger buffer size may improve performance but will use more memory.
+    endif
+endmenu
