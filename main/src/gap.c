@@ -11,11 +11,18 @@
 /* Private function declarations */
 inline static void format_addr(char *addr_str, uint8_t addr[]);
 static void print_conn_desc(struct ble_gap_conn_desc *desc);
-static void start_advertising(void);
+static int start_advertising(void);
 static int gap_event_handler(struct ble_gap_event *event, void *arg);
 
 /* Private variables */
-static uint8_t own_addr_type;
+ble_context_t s_ble = {
+    .initialized = false,
+    .advertising = false,
+    .connected = false,
+    .pairing_mode = false,
+    .own_addr_type = BLE_OWN_ADDR_PUBLIC,
+    .conn_handle = BLE_HS_CONN_HANDLE_NONE
+};
 static uint8_t addr_val[6] = {0};
 static uint8_t esp_uri[] = {BLE_GAP_URI_PREFIX_HTTPS, '/', '/', 'e', 's', 'p', 'r', 'e', 's', 's', 'i', 'f', '.', 'c', 'o', 'm'};
 
@@ -51,7 +58,8 @@ static void print_conn_desc(struct ble_gap_conn_desc *desc) {
              desc->sec_state.bonded);
 }
 
-static void start_advertising(void) {
+static int start_advertising(void)
+{
     /* Local variables */
     int rc = 0;
     const char *name;
@@ -84,12 +92,12 @@ static void start_advertising(void) {
     rc = ble_gap_adv_set_fields(&adv_fields);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to set advertising data, error code: %d", rc);
-        return;
+        return rc;
     }
 
     /* Set device address */
     rsp_fields.device_addr = addr_val;
-    rsp_fields.device_addr_type = own_addr_type;
+    rsp_fields.device_addr_type = s_ble.own_addr_type;
     rsp_fields.device_addr_is_present = 1;
 
     /* Set URI */
@@ -104,7 +112,7 @@ static void start_advertising(void) {
     rc = ble_gap_adv_rsp_set_fields(&rsp_fields);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to set scan response data, error code: %d", rc);
-        return;
+        return rc;
     }
 
     /* Set undirected connectable and general discoverable mode */
@@ -116,13 +124,36 @@ static void start_advertising(void) {
     adv_params.itvl_max = BLE_GAP_ADV_ITVL_MS(510);
 
     /* Start advertising */
-    rc = ble_gap_adv_start(own_addr_type, NULL, BLE_HS_FOREVER, &adv_params,
+    rc = ble_gap_adv_start(s_ble.own_addr_type, NULL, BLE_HS_FOREVER, &adv_params,
                            gap_event_handler, NULL);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to start advertising, error code: %d", rc);
-        return;
+        return rc;
     }
+    s_ble.advertising = true;
     ESP_LOGI(TAG, "advertising started!");
+    return rc;
+}
+
+static int stop_advertising(void)
+{
+    int rc = 0;
+
+    if (!s_ble.advertising) {
+        return rc;
+    }
+
+    rc = ble_gap_adv_stop();
+
+    if (rc != 0) {
+        ESP_LOGE(TAG, "failed to stop advertising, rc=%d", rc);
+        return rc;
+    }
+
+    s_ble.advertising = false;
+    ESP_LOGI(TAG, "advertising stopped");
+
+    return rc;
 }
 
 /*
@@ -173,10 +204,16 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
                     rc);
                 return rc;
             }
+            s_ble.conn_handle = event->connect.conn_handle;
+            s_ble.connected = event->connect.status == 0 ? true : false;
+            s_ble.advertising = false;
         }
         /* Connection failed, restart advertising */
         else {
-            start_advertising();
+            s_ble.connected = false;
+            if (s_ble.pairing_mode) {
+                rc = start_advertising();
+            }
         }
         return rc;
 
@@ -186,8 +223,13 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         ESP_LOGI(TAG, "disconnected from peer; reason=%d",
                  event->disconnect.reason);
 
+        s_ble.connected = false;
+        s_ble.conn_handle = BLE_HS_CONN_HANDLE_NONE;
         /* Restart advertising */
-        start_advertising();
+        if (s_ble.pairing_mode) {
+            ESP_LOGI(TAG, "Starting advertising after BLE_GAP_EVENT_DISCONNECT because we are in pairing mode");
+            rc = start_advertising();
+        }
         return rc;
 
     /* Connection parameters update event */
@@ -211,7 +253,9 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
         /* Advertising completed, restart advertising */
         ESP_LOGI(TAG, "advertise complete; reason=%d",
                  event->adv_complete.reason);
-        start_advertising();
+        if (s_ble.pairing_mode) {
+            rc = start_advertising();
+        }
         return rc;
 
     /* Notification sent event */
@@ -256,7 +300,8 @@ static int gap_event_handler(struct ble_gap_event *event, void *arg) {
 
 
 /* Public functions */
-void adv_init(void) {
+int adv_init(void)
+{
     /* Local variables */
     int rc = 0;
     char addr_str[18] = {0};
@@ -265,27 +310,26 @@ void adv_init(void) {
     rc = ble_hs_util_ensure_addr(0);
     if (rc != 0) {
         ESP_LOGE(TAG, "device does not have any available bt address!");
-        return;
+        return rc;
     }
 
     /* Figure out BT address to use while advertising (no privacy for now) */
-    rc = ble_hs_id_infer_auto(0, &own_addr_type);
+    rc = ble_hs_id_infer_auto(0, &s_ble.own_addr_type);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to infer address type, error code: %d", rc);
-        return;
+        return rc;
     }
 
     /* Printing ADDR */
-    rc = ble_hs_id_copy_addr(own_addr_type, addr_val, NULL);
+    rc = ble_hs_id_copy_addr(s_ble.own_addr_type, addr_val, NULL);
     if (rc != 0) {
         ESP_LOGE(TAG, "failed to copy device address, error code: %d", rc);
-        return;
+        return rc;
     }
     format_addr(addr_str, addr_val);
     ESP_LOGI(TAG, "device address: %s", addr_str);
 
-    /* Start advertising. */
-    start_advertising();
+    return rc;
 }
 
 int gap_init(void) {
@@ -302,5 +346,34 @@ int gap_init(void) {
                  DEVICE_NAME, rc);
         return rc;
     }
+    return rc;
+}
+
+int ble_enter_pairing_mode(void)
+{
+    int rc = 0;
+
+    s_ble.pairing_mode = true;
+
+    rc = start_advertising();
+
+    if (rc != 0) {
+        s_ble.pairing_mode = false;
+    }
+    ESP_LOGI(TAG, "pairing mode entered");
+    return rc;
+}
+
+int ble_exit_pairing_mode(void)
+{
+    int rc;
+
+    s_ble.pairing_mode = false;
+
+    rc = stop_advertising();
+    if (rc == 0) {
+        ESP_LOGI(TAG, "pairing mode exited");
+    }
+
     return rc;
 }
