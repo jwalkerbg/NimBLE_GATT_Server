@@ -377,6 +377,8 @@ int ble_enter_pairing_mode(void)
 
     if (rc != 0) {
         s_ble.pairing_mode = false;
+        ESP_LOGE(TAG, "failed to start advertising, not entered pairing mode, error code: %d", rc);
+        return rc;
     }
     ESP_LOGI(TAG, "pairing mode entered");
     return rc;
@@ -391,6 +393,8 @@ int ble_exit_pairing_mode(void)
     rc = stop_advertising();
     if (rc == 0) {
         ESP_LOGI(TAG, "pairing mode exited");
+    } else {
+        ESP_LOGE(TAG, "failed to stop advertising, not exited pairing mode, error code: %d", rc);
     }
 
     return rc;
