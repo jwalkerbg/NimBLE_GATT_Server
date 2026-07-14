@@ -5,7 +5,6 @@
  */
 /* Includes */
 #include "common.h"
-#include "gap.h"
 #include "ble.h"
 
 static uint8_t buf[CONFIG_NIMBLE_BUFFER_SIZE] = {0};

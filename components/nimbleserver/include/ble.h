@@ -19,6 +19,9 @@ void ble_set_callbacks(api_post_command_from_ble_t command);
 esp_err_t ble_indicate_response(uint8_t* buffer, uint16_t len);
 esp_err_t ble_indicate_devstatus(uint8_t* buffer, uint16_t len);
 
+int ble_enter_pairing_mode(void);
+int ble_exit_pairing_mode(void);
+
 #if defined(__cplusplus)
 }
 #endif
