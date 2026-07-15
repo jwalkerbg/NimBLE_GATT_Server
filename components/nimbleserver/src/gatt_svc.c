@@ -336,37 +336,42 @@ int gatt_svc_init(void) {
     return 0;
 }
 
-static esp_err_t ble_indicate(uint8_t* buffer, uint16_t len, uint8_t* chr_val, uint16_t chr_val_size, uint16_t* chr_val_len, uint16_t chr_val_handle)
+static esp_err_t ble_indicate(const uint8_t *buffer,
+                              uint16_t len,
+                              uint8_t *chr_val,
+                              uint16_t chr_val_size,
+                              uint16_t *chr_val_len,
+                              uint16_t chr_val_handle)
 {
-    int rc = 0;
-    struct os_mbuf *om = NULL;
-
+    int rc;
+    struct os_mbuf *om;
     uint16_t conn_handle = get_ble_conn_handle();
 
     if (conn_handle == BLE_HS_CONN_HANDLE_NONE) {
-        ESP_LOGE(TAG, "invalid connection handle or not connected");
+        ESP_LOGE(TAG, "Invalid connection handle or not connected");
         return ESP_FAIL;
     }
 
-    // Check buffer length
     if (len > chr_val_size) {
-        ESP_LOGE(TAG, "buffer length is too long!");
+        ESP_LOGE(TAG, "Buffer length (%u) exceeds characteristic size (%u)",
+                 len, chr_val_size);
         return ESP_FAIL;
     }
-    *chr_val_len = len;
+
+    /* Update the characteristic value. */
     memcpy(chr_val, buffer, len);
+    *chr_val_len = len;
 
-    // Create os_mbuf for indication
-    om = ble_hs_mbuf_from_flat(buffer, len);
+    /* Build the indication from the characteristic value itself. */
+    om = ble_hs_mbuf_from_flat(chr_val, *chr_val_len);
     if (om == NULL) {
-        ESP_LOGE(TAG, "failed to create os_mbuf for indication!");
+        ESP_LOGE(TAG, "Failed to allocate os_mbuf");
         return ESP_FAIL;
     }
 
-    // Send indication
     rc = ble_gatts_indicate_custom(conn_handle, chr_val_handle, om);
     if (rc != 0) {
-        ESP_LOGE(TAG, "failed to send indication, error code: %d", rc);
+        ESP_LOGE(TAG, "Failed to send indication, rc=%d", rc);
         return ESP_FAIL;
     }
 
